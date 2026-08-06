@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>店铺经营数据罗盘</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-primary: #f0f2f5; --bg-card: #ffffff; --bg-header: #0f172a;
+  --text-primary: #1e293b; --text-secondary: #64748b; --text-inverse: #f8fafc;
+  --border: #e2e8f0; --shadow: 0 1px 3px rgba(0,0,0,0.06); --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+  --radius: 12px; --radius-sm: 8px; --accent: #2563eb; --accent-soft: #eff6ff;
+  --success: #16a34a; --warning: #ca8a04; --danger: #dc2626; --info: #6366f1;
+  --viz-1: #3b82f6; --viz-2: #f59e0b; --viz-3: #10b981; --viz-4: #8b5cf6; --viz-5: #ef4444; --brand: #059669;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; min-height: 100vh; }
+.header { background: var(--bg-header); color: var(--text-inverse); padding: 20px 28px; }
+.header-inner { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.header-title h1 { font-size: 20px; font-weight: 500; }
+.header-title span { font-size: 13px; color: #94a3b8; margin-left: 8px; }
+.header-meta { display: flex; align-items: center; gap: 14px; font-size: 13px; }
+.header-meta .badge { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.status-dot.live { background: #22c55e; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 20px 28px 40px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+.card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.card-header h2 { font-size: 15px; font-weight: 500; }
+.card-header .chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+
+/* KPI Cards */
+.kpi-card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; position: relative; overflow: hidden; }
+.kpi-card .kpi-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.kpi-card .kpi-value { font-size: 26px; font-weight: 500; letter-spacing: -0.5px; }
+.kpi-card .kpi-sub { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+.kpi-card .kpi-trend { font-size: 12px; margin-top: 2px; }
+.kpi-card .kpi-trend.up { color: var(--success); }
+.kpi-card .kpi-trend.down { color: var(--danger); }
+.kpi-card .kpi-trend.flat { color: var(--text-secondary); }
+.kpi-card::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 2px 0 0 2px; }
+.kpi-card.card-0::after { background: var(--viz-1); } .kpi-card.card-1::after { background: var(--viz-2); }
+.kpi-card.card-2::after { background: var(--viz-3); } .kpi-card.card-3::after { background: var(--viz-4); }
+.kpi-card.card-4::after { background: var(--viz-5); } .kpi-card.card-5::after { background: var(--brand); }
+
+.chart-wrap { position: relative; width: 100%; }
+.chart-wrap canvas { width: 100% !important; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--border); font-weight: 500; color: var(--text-secondary); font-size: 12px; }
+.data-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table .highlight { font-weight: 500; }
+
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.tag-p0 { background: #fef2f2; color: var(--danger); } .tag-p1 { background: #fffbeb; color: var(--warning); }
+.tag-p2 { background: #f0fdf4; color: var(--success); } .tag-p3 { background: #f1f5f9; color: var(--text-secondary); }
+
+.empty-state { text-align: center; padding: 32px 20px; color: var(--text-secondary); }
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 8px; }
+.empty-state p { font-size: 13px; }
+
+.phase-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.phase-startup { background: #eff6ff; color: #2563eb; } .phase-growth { background: #fefce8; color: #ca8a04; }
+.phase-mature { background: #f0fdf4; color: #16a34a; }
+
+.progress-bar { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.progress-fill.green { background: var(--success); }
+
+.footer { text-align: center; padding: 16px; font-size: 11px; color: var(--text-secondary); border-top: 1px solid var(--border); margin-top: 20px; }
+
+@media (max-width: 1200px) { .grid-6 { grid-template-columns: repeat(3, 1fr); } .grid-2 { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .grid-6 { grid-template-columns: repeat(2, 1fr); } .header-inner { flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-title"><h1>📊 <span id="headerTitle">店铺经营数据罗盘</span> <span id="headerStoreId"></span></h1></div>
+    <div class="header-meta">
+      <span class="phase-badge" id="phaseBadge"></span>
+      <span class="badge" id="dataWindow"></span>
+      <span class="badge"><span class="status-dot live"></span><span id="updateTime"></span></span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid-6" style="margin-bottom:18px" id="kpiCards"></div>
+  <div class="grid-2" style="margin-bottom:18px">
+    <div class="card"><div class="card-header"><h2>流量转化漏斗</h2><span class="chip">全链路</span></div><div class="chart-wrap" style="height:280px"><canvas id="funnelChart"></canvas></div></div>
+    <div class="card"><div class="card-header"><h2>渠道流量分布</h2><span class="chip">来源</span></div><div class="chart-wrap" style="height:280px"><canvas id="channelChart"></canvas></div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:18px">
+    <div class="card"><div class="card-header"><h2>买家地域 Top10</h2><span class="chip">地域</span></div><div id="regionTable"></div></div>
+    <div class="card"><div class="card-header"><h2>商品健康度</h2><span class="chip">分层</span></div><div id="productHealth"></div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:18px">
+    <div class="card"><div class="card-header"><h2>服务能力</h2><span class="chip">服务</span></div><div id="serviceMetrics"></div></div>
+    <div class="card"><div class="card-header"><h2>行动建议</h2><span class="chip">P0-P3</span></div><div id="actionItems"></div></div>
+  </div>
+  <footer class="footer">店铺经营数据罗盘 · 数据来源：API 自动采集 · 自动更新于每日 09:00</footer>
+</div>
+
+<!-- DATA_INJECTION -->
+<script id="dashboard-data" type="application/json">
+{
+  "platform": "alibaba",
+  "storeId": "cn1576649761kois",
+  "window": "2026-07-29~2026-08-04",
+  "updatedAt": "美西 08-04 (北京 08-05 15:00 前)",
+  "status": "growth",
+  "kpiCards": [
+    {"id":"exposure","label":"搜索曝光量","value":378,"unit":"次","trend":"↑ 93.5%"},
+    {"id":"clicks","label":"搜索点击量","value":10,"unit":"次","trend":"↑ 新增","subLabel":"CTR","subValue":"2.6%"},
+    {"id":"visitors","label":"店铺访问人数","value":9,"unit":"人","trend":"↑ 新增"},
+    {"id":"leads","label":"商机人数","value":1,"unit":"人","trend":"↑ 新增","subLabel":"转化率","subValue":"12.5%"},
+    {"id":"orders","label":"信保订单数","value":0,"unit":"笔","trend":"→ 0%"},
+    {"id":"gmv","label":"信保订单金额","value":0,"unit":"$","trend":"→ 0%","isCurrency":true}
+  ],
+  "funnel": {"exposure":378,"clicks":10,"visitors":9,"leads":1,"orders":0},
+  "funnelLabels": ["搜索曝光","搜索点击","店铺访问","商机人数","信保订单"],
+  "channels": [
+    {"name":"搜索","uv":4},
+    {"name":"店内","uv":2},
+    {"name":"系统推荐","uv":1},
+    {"name":"直接访问","uv":1},
+    {"name":"其他","uv":1}
+  ],
+  "regions": [
+    {"country":"美国","exposure":15,"uv":2,"leads":0},
+    {"country":"俄罗斯","exposure":13,"uv":1,"leads":0},
+    {"country":"科特迪瓦","exposure":7,"uv":0,"leads":0},
+    {"country":"英国","exposure":4,"uv":1,"leads":0},
+    {"country":"阿联酋","exposure":4,"uv":0,"leads":0},
+    {"country":"墨西哥","exposure":3,"uv":1,"leads":0},
+    {"country":"菲律宾","exposure":3,"uv":1,"leads":0},
+    {"country":"马里","exposure":2,"uv":0,"leads":0},
+    {"country":"越南","exposure":0,"uv":1,"leads":0},
+    {"country":"斯洛伐克","exposure":1,"uv":0,"leads":0}
+  ],
+  "products": {"total":40,"top":0,"good":0,"potential":9,"normal":31},
+  "productLabels": {"top":"平台爆品","good":"实力优品","potential":"潜力优品"},
+  "service": {"replyRate":"0.0","avgReplyTime":"0h","satisfaction":"0.0"},
+  "serviceLabels": {"replyRate":"及时回复率","avgReplyTime":"平均回复时长","satisfaction":"极速回复率(5min)"},
+  "realtime": {"pendingOrders":0,"unreadMessages":0,"logisticsAbnormal":0},
+  "actions": [
+    {"priority":"P0","problem":"曝光 378 但点击仅 10 (CTR 2.6%)","action":"优化主图与标题，提升搜索结果点击率","tool":"主图诊断"},
+    {"priority":"P0","problem":"Top10 曝光产品全部零商机","action":"优化详情页承接能力，强化卖点与规格呈现","tool":"详情页优化"},
+    {"priority":"P1","problem":"流量基数小（访客 9 人）","action":"开启直通车放大流量开口","tool":"智投优化 / 全站推"},
+    {"priority":"P1","problem":"商机转化率 12.5% 超同行但基数仅 1","action":"保持快速响应，避免商机流失","tool":"沟通效率提升"},
+    {"priority":"P2","problem":"40 个商品中 31 个普通品","action":"提升商品分层质量，打造潜力爆品","tool":"商品分层优化"},
+    {"priority":"P3","problem":"服务回复率 0%","action":"配置自动接待卡片和话术库","tool":"自动接待配置"}
+  ]
+}
+</script>
+
+<script>
+(function() {
+  const D = JSON.parse(document.getElementById('dashboard-data').textContent);
+  function fmt(n) { if (n===null||n===undefined) return '-'; if (typeof n==='number') return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'k':n.toString(); return String(n); }
+
+  document.getElementById('headerTitle').textContent = D.platform === 'alibaba' ? '国际站经营数据罗盘' : D.platform === 'amazon' ? 'Amazon经营罗盘' : '店铺经营数据罗盘';
+  document.getElementById('headerStoreId').textContent = D.storeId;
+  document.getElementById('dataWindow').textContent = '窗口: '+D.window;
+  document.getElementById('updateTime').textContent = '更新: '+D.updatedAt;
+
+  const pb = document.getElementById('phaseBadge');
+  if (D.status==='startup') { pb.className='phase-badge phase-startup'; pb.textContent='🏗️ 启动期'; }
+  else if (D.status==='growth') { pb.className='phase-badge phase-growth'; pb.textContent='📈 成长期'; }
+  else { pb.className='phase-badge phase-mature'; pb.textContent='🏆 成熟期'; }
+
+  // KPI Cards
+  let kpiHtml = '';
+  D.kpiCards.forEach((k,i) => {
+    const val = k.isCurrency ? k.unit+fmt(k.value) : fmt(k.value)+' '+k.unit;
+    const sub = k.subLabel ? k.subLabel+' '+k.subValue : '';
+    let trendCls = 'flat'; const t = k.trend||'';
+    if (t.includes('↑')||t.startsWith('+')) trendCls='up';
+    else if (t.includes('↓')||t.startsWith('-')) trendCls='down';
+    kpiHtml += '<div class="kpi-card card-'+i+'"><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+val+'</div>'+
+      (sub?'<div class="kpi-sub">'+sub+'</div>':'')+
+      '<div class="kpi-trend '+trendCls+'">'+k.trend+'</div></div>';
+  });
+  document.getElementById('kpiCards').innerHTML = kpiHtml;
+
+  // Funnel Chart
+  (function(){
+    const ctx = document.getElementById('funnelChart').getContext('2d');
+    const vals = Object.values(D.funnel);
+    if (!vals.some(v=>v>0)) { ctx.font='14px sans-serif'; ctx.fillStyle='#94a3b8'; ctx.textAlign='center'; ctx.fillText('暂无数据 · 店铺处于冷启动期',340,140); return; }
+    new Chart(ctx,{type:'bar',data:{labels:D.funnelLabels,datasets:[{data:vals,backgroundColor:['#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe'],borderRadius:6,borderSkipped:false}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}},y:{grid:{display:false}}}}});
+  })();
+
+  // Channel Chart
+  (function(){
+    const ctx = document.getElementById('channelChart').getContext('2d');
+    if (!D.channels||D.channels.length===0) { ctx.font='14px sans-serif'; ctx.fillStyle='#94a3b8'; ctx.textAlign='center'; ctx.fillText('暂无渠道数据',340,140); return; }
+    new Chart(ctx,{type:'doughnut',data:{labels:D.channels.map(c=>c.name),datasets:[{data:D.channels.map(c=>c.uv),backgroundColor:['#3b82f6','#f59e0b','#10b981','#8b5cf6','#ef4444','#06b6d4','#ec4899','#84cc16'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{padding:12,font:{size:12}}}}}});
+  })();
+
+  // Region Table
+  (function(){
+    const el = document.getElementById('regionTable');
+    if (!D.regions||D.regions.length===0) { el.innerHTML='<div class="empty-state"><div class="empty-icon">🌍</div><p>暂无买家地域数据</p></div>'; return; }
+    let h='<table class="data-table"><thead><tr><th>国家/地区</th><th>曝光</th><th>访客</th><th>商机</th></tr></thead><tbody>';
+    D.regions.forEach(r=>{h+='<tr><td>'+r.country+'</td><td>'+fmt(r.exposure)+'</td><td>'+fmt(r.uv)+'</td><td>'+fmt(r.leads)+'</td></tr>';});
+    h+='</tbody></table>'; el.innerHTML=h;
+  })();
+
+  // Product Health
+  (function(){
+    const el = document.getElementById('productHealth');
+    const p = D.products; const pl = D.productLabels;
+    if (p.total===0) { el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div><p>暂无有效商品</p></div>'; return; }
+    let h='<table class="data-table"><thead><tr><th>商品层级</th><th>数量</th><th>占比</th></tr></thead><tbody>';
+    if (p.top>0) h+='<tr><td>⭐ '+pl.top+'</td><td class="highlight">'+p.top+'</td><td>'+((p.top/p.total)*100).toFixed(1)+'%</td></tr>';
+    if (p.good>0) h+='<tr><td>🟢 '+pl.good+'</td><td class="highlight">'+p.good+'</td><td>'+((p.good/p.total)*100).toFixed(1)+'%</td></tr>';
+    if (p.potential>0) h+='<tr><td>🟡 '+pl.potential+'</td><td>'+p.potential+'</td><td>'+((p.potential/p.total)*100).toFixed(1)+'%</td></tr>';
+    h+='<tr style="font-weight:500"><td>全店合计</td><td>'+p.total+'</td><td>100%</td></tr></tbody></table>';
+    h+='<div style="margin-top:10px"><div class="progress-bar"><div class="progress-fill green" style="width:'+Math.max((p.top+p.good)/p.total*100,2)+'%"></div></div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px">优品占比: '+((p.top+p.good)/p.total*100).toFixed(1)+'%</div></div>';
+    el.innerHTML=h;
+  })();
+
+  // Service Metrics
+  (function(){
+    const el = document.getElementById('serviceMetrics');
+    const s = D.service; const sl = D.serviceLabels;
+    let h='<table class="data-table"><thead><tr><th>指标</th><th>数值</th></tr></thead><tbody>';
+    h+='<tr><td>'+sl.replyRate+'</td><td class="highlight">'+s.replyRate+'%</td></tr>';
+    h+='<tr><td>'+sl.avgReplyTime+'</td><td class="highlight">'+s.avgReplyTime+'</td></tr>';
+    if (s.satisfaction) h+='<tr><td>'+sl.satisfaction+'</td><td class="highlight">'+s.satisfaction+'</td></tr>';
+    h+='</tbody></table>';
+    // Realtime
+    h+='<div style="margin-top:14px"><strong style="font-size:13px">实时待办</strong></div>';
+    h+='<table class="data-table" style="margin-top:6px"><thead><tr><th>项目</th><th>数量</th><th>状态</th></tr></thead><tbody>';
+    const rt = D.realtime;
+    h+='<tr><td>待处理订单</td><td>'+rt.pendingOrders+' 笔</td><td>'+(rt.pendingOrders>0?'⚠️ 待跟进':'✅ 正常')+'</td></tr>';
+    h+='<tr><td>未读消息</td><td>'+rt.unreadMessages+' 条</td><td>'+(rt.unreadMessages>0?'🔴 待回复':'✅ 正常')+'</td></tr>';
+    h+='<tr><td>物流异常</td><td>'+rt.logisticsAbnormal+' 单</td><td>'+(rt.logisticsAbnormal>0?'🔴 需处理':'✅ 正常')+'</td></tr>';
+    h+='</tbody></table>';
+    el.innerHTML=h;
+  })();
+
+  // Action Items
+  (function(){
+    const el = document.getElementById('actionItems');
+    let actions = D.actions;
+    if (!actions||actions.length===0) {
+      actions = [
+        {priority:'P0',problem:'店铺尚无有效商品',action:'发布高质量商品，完善标题和主图',tool:'商品发布优化'},
+        {priority:'P0',problem:'店铺基建未完成',action:'完善公司信息与店铺装修',tool:'店铺基建检查'},
+        {priority:'P1',problem:'无流量来源',action:'开启广告投放获取初始曝光',tool:'广告投放'},
+        {priority:'P2',problem:'团队回复待验证',action:'配置自动回复和话术库',tool:'客服优化'},
+        {priority:'P3',problem:'无数据积累',action:'运营2-4周后做首次数据复盘',tool:'数据分析'}
+      ];
+    }
+    let h='<table class="data-table"><thead><tr><th>优先级</th><th>问题</th><th>方案</th><th>工具</th></tr></thead><tbody>';
+    actions.forEach(a=>{h+='<tr><td><span class="tag tag-'+a.priority.toLowerCase()+'">'+a.priority+'</span></td><td>'+a.problem+'</td><td>'+a.action+'</td><td>'+a.tool+'</td></tr>';});
+    h+='</tbody></table>'; el.innerHTML=h;
+  })();
+
+  console.log('📊 经营数据罗盘已就绪 · '+D.platform+' · '+D.storeId+' · '+D.updatedAt);
+})();
+</script>
+</body>
+</html>
