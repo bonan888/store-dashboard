@@ -111,55 +111,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
 
 <!-- DATA_INJECTION -->
 <script id="dashboard-data" type="application/json">
-{
-  "platform": "alibaba",
-  "storeId": "cn1576649761kois",
-  "window": "2026-07-29~2026-08-04",
-  "updatedAt": "美西 08-04 (北京 08-05 15:00 前)",
-  "status": "growth",
-  "kpiCards": [
-    {"id":"exposure","label":"搜索曝光量","value":378,"unit":"次","trend":"↑ 93.5%"},
-    {"id":"clicks","label":"搜索点击量","value":10,"unit":"次","trend":"↑ 新增","subLabel":"CTR","subValue":"2.6%"},
-    {"id":"visitors","label":"店铺访问人数","value":9,"unit":"人","trend":"↑ 新增"},
-    {"id":"leads","label":"商机人数","value":1,"unit":"人","trend":"↑ 新增","subLabel":"转化率","subValue":"12.5%"},
-    {"id":"orders","label":"信保订单数","value":0,"unit":"笔","trend":"→ 0%"},
-    {"id":"gmv","label":"信保订单金额","value":0,"unit":"$","trend":"→ 0%","isCurrency":true}
-  ],
-  "funnel": {"exposure":378,"clicks":10,"visitors":9,"leads":1,"orders":0},
-  "funnelLabels": ["搜索曝光","搜索点击","店铺访问","商机人数","信保订单"],
-  "channels": [
-    {"name":"搜索","uv":4},
-    {"name":"店内","uv":2},
-    {"name":"系统推荐","uv":1},
-    {"name":"直接访问","uv":1},
-    {"name":"其他","uv":1}
-  ],
-  "regions": [
-    {"country":"美国","exposure":15,"uv":2,"leads":0},
-    {"country":"俄罗斯","exposure":13,"uv":1,"leads":0},
-    {"country":"科特迪瓦","exposure":7,"uv":0,"leads":0},
-    {"country":"英国","exposure":4,"uv":1,"leads":0},
-    {"country":"阿联酋","exposure":4,"uv":0,"leads":0},
-    {"country":"墨西哥","exposure":3,"uv":1,"leads":0},
-    {"country":"菲律宾","exposure":3,"uv":1,"leads":0},
-    {"country":"马里","exposure":2,"uv":0,"leads":0},
-    {"country":"越南","exposure":0,"uv":1,"leads":0},
-    {"country":"斯洛伐克","exposure":1,"uv":0,"leads":0}
-  ],
-  "products": {"total":40,"top":0,"good":0,"potential":9,"normal":31},
-  "productLabels": {"top":"平台爆品","good":"实力优品","potential":"潜力优品"},
-  "service": {"replyRate":"0.0","avgReplyTime":"0h","satisfaction":"0.0"},
-  "serviceLabels": {"replyRate":"及时回复率","avgReplyTime":"平均回复时长","satisfaction":"极速回复率(5min)"},
-  "realtime": {"pendingOrders":0,"unreadMessages":0,"logisticsAbnormal":0},
-  "actions": [
-    {"priority":"P0","problem":"曝光 378 但点击仅 10 (CTR 2.6%)","action":"优化主图与标题，提升搜索结果点击率","tool":"主图诊断"},
-    {"priority":"P0","problem":"Top10 曝光产品全部零商机","action":"优化详情页承接能力，强化卖点与规格呈现","tool":"详情页优化"},
-    {"priority":"P1","problem":"流量基数小（访客 9 人）","action":"开启直通车放大流量开口","tool":"智投优化 / 全站推"},
-    {"priority":"P1","problem":"商机转化率 12.5% 超同行但基数仅 1","action":"保持快速响应，避免商机流失","tool":"沟通效率提升"},
-    {"priority":"P2","problem":"40 个商品中 31 个普通品","action":"提升商品分层质量，打造潜力爆品","tool":"商品分层优化"},
-    {"priority":"P3","problem":"服务回复率 0%","action":"配置自动接待卡片和话术库","tool":"自动接待配置"}
-  ]
-}
+{"platform":"alibaba","storeId":"cn1576649761kois","window":"2026-07-29~2026-08-04","updatedAt":"US-West 2026-08-04 (Beijing 08-05 15:00 cutoff)","status":"growth","kpiCards":[{"label":"搜索曝光量","unit":"Times","id":"exposure","value":378,"trend":"up 93.5%"},{"id":"clicks","label":"搜索点击量","subValue":"2.6%","value":10,"trend":"up new","unit":"Times","subLabel":"CTR"},{"label":"店铺访问人数","unit":"People","id":"visitors","value":10,"trend":"up new"},{"id":"leads","label":"商机人数","subValue":"12.5%","value":1,"trend":"up new","unit":"People","subLabel":"Rate"},{"label":"信保订单数","unit":"Orders","id":"orders","value":0,"trend":"-\u003e 0%"},{"id":"gmv","label":"信保订单金额","value":0,"isCurrency":true,"trend":"-\u003e 0%","unit":"$"}],"funnel":{"exposure":378,"leads":1,"clicks":10,"orders":0,"visitors":10},"funnelLabels":["搜索曝光","搜索点击","店铺访问","商机人数","信保订单"],"channels":[{"uv":4,"name":"搜索"},{"uv":2,"name":"店内"},{"uv":1,"name":"直接访问"},{"uv":1,"name":"系统推荐"},{"uv":1,"name":"其他"}],"regions":[{"exposure":85,"leads":0,"uv":3,"country":"United States"},{"exposure":42,"leads":0,"uv":1,"country":"Russian Federation"},{"exposure":17,"leads":0,"uv":1,"country":"Mexico"},{"exposure":13,"leads":0,"uv":1,"country":"United Kingdom"},{"exposure":3,"leads":0,"uv":1,"country":"Philippines"},{"exposure":0,"leads":0,"uv":1,"country":"Vietnam"},{"exposure":27,"leads":0,"uv":0,"country":"India"},{"exposure":15,"leads":0,"uv":0,"country":"Canada"},{"exposure":14,"leads":0,"uv":0,"country":"Thailand"},{"exposure":9,"leads":0,"uv":0,"country":"South Africa"}],"products":{"good":0,"potential":9,"top":0,"total":40},"productLabels":{"potential":"潜力优品","top":"平台爆品","good":"实力优品"},"service":{"avgReplyTime":"0h","satisfaction":"0.0","replyRate":"0.0"},"serviceLabels":{"avgReplyTime":"平均回复时长","satisfaction":"极速回复率(5min)","replyRate":"及时回复率"},"realtime":{"logisticsAbnormal":0,"unreadMessages":0,"pendingOrders":0},"actions":[{"priority":"P0","tool":"Main Image Diagnosis","action":"Optimize main image and title to lift CTR","problem":"Exposure 378 but clicks only 10 (CTR 2.6%)"},{"priority":"P0","tool":"Detail Page Optimization","action":"Optimize detail page and follow up leads fast","problem":"Leads 1 but 0 orders"},{"priority":"P1","tool":"Smart Ads / Whole-site Push","action":"Scale ads to open traffic funnel","problem":"Traffic base too small (exposure 378)"}]}
 </script>
 
 <script>
